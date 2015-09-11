@@ -13,16 +13,17 @@ __resource__      = xbmc.translatePath(__resource_path__).decode('utf-8')
 
 sys.path.append (__resource__)
 
-from utilities import log, tvdb_id_and_played_from_episode_id
+from utilities import log, get_episode_info
 
 class KodiMonitor(xbmc.Monitor):
 
     def onNotification(self, sender, method, data):
-    	if method == "VideoLibrary.OnUpdate":
+    	if method == "VideoLibrary.OnUpdate" or method == 'Player.OnStop':
     		parsed_data = json.loads(data)
+    		log(parsed_data)
     		if parsed_data['item']['type'] == 'episode':
     			episode_id = parsed_data['item']['id']
-    			tvdb_data = tvdb_id_and_played_from_episode_id(episode_id)
+    			tvdb_data = get_episode_info(episode_id)
     			log(str(tvdb_data))
 
 

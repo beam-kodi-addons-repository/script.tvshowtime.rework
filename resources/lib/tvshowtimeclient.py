@@ -12,10 +12,11 @@ class TVShowClient(object):
 
     def __init__(self, auth_token = None):
         self.base_api_url = 'https://api.tvshowtime.com/v1/'
-        self.client_id = '845mHJx5-CxI8dSlStHB'
-        self.client_secret = 'lvN6LZOZkUAH8aa_WAbvAJ4AXGcSo7irZyAPdRQj'
+        self.client_id = 'pr4GUjdRKnLLxeLzCdZL'
+        self.client_secret = 'bhaP1sNmuvaUoH45fCi1DaEwKNrheqcvqrUm81sE'
         self.device_code = None
         self.token = auth_token
+        self.rate_limit_reset = None
 
     def store_api_rate(self, headers):
         log(headers)
@@ -23,6 +24,7 @@ class TVShowClient(object):
         self.rate_limit_reset = int(headers.get("X-RateLimit-Reset"))
 
     def available_request(self):
+        if self.rate_limit_reset == None: return True
         if self.rate_limit_remaining > 1: return True
         if self.rate_limit_reset - time.time() < -5: return True
         return False
@@ -55,8 +57,8 @@ class TVShowClient(object):
             )
             data = json.loads(res.read())
             log(data)
-            if data['message'] == 'Invalid code': return data
             if data['result'] == 'OK': return data
+            if data['message'] == 'Invalid code': return data
             time.sleep(int(get_code_data['interval']))
         return data
 
