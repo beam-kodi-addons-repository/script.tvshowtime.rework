@@ -97,6 +97,21 @@ class TVShowTimeClient(object):
         log(data)
         return data['user']['name'] if data['result'] == "OK" else False 
 
+    def follow_show(self, tvdb_show_id, follow_status = True):
+        action = "follow" if follow_status == True else "unfollow"
+        log("Follow show: " + action + " - " + tvdb_show_id)
+        try:
+            res = urllib2.urlopen(self.base_api_url +  action + "?access_token=" + self.token,
+                urllib.urlencode({ "show_id" : tvdb_show_id })
+            )
+            data = json.loads(res.read())
+        except urllib2.HTTPError as res:
+            data = { 'result' : 'KO' }
+        self.store_api_rate(res.headers)
+        log(data)
+        return data["result"] == "OK"
+
+
     def mark_episode(self,tvdb_episode_id,watch = True):
         action = "checkin" if watch == True else "checkout"
         log("Mark episode: " + action + " - " + tvdb_episode_id)
