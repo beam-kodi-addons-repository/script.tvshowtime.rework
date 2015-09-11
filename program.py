@@ -16,24 +16,19 @@ sys.path.append (__resource__)
 from utilities import log, get_episode_info
 from TVShowTimeClient import TVShowTimeClient
 
-__access_token__  = __addon__.getSetting('access_token')
-tvshowtime_client = TVShowTimeClient(__access_token__)
+tvshowtime_client = TVShowTimeClient(__addon__.getSetting('access_token'))
 
 def app_start():
-	global __access_token__
-
 	menu_items = []
-	if __access_token__ == '' or __access_token__ is None:
-		__access_token__ = None
+	if tvshowtime_client.is_token_empty():
 		menu_items.append("Login")
 	else:
 		menu_items.append("Sync")
 		menu_items.append("Logout")
 
 	xbmc_menu = xbmcgui.Dialog().select(__scriptname__, menu_items)
-	log("Menu: " + str(xbmc_menu))
 
-	if xbmc_menu == 0 and __access_token__ is None:
+	if xbmc_menu == 0 and tvshowtime_client.is_token_empty():
 		progress = xbmcgui.DialogProgress()
 		progress.create(__scriptname__, "Requesting code..")
 		get_code = tvshowtime_client.get_code()
@@ -41,7 +36,7 @@ def app_start():
 		for auth_code in tvshowtime_client.wait_for_authorize(get_code):
 			if progress.iscanceled(): break
 		__addon__.setSetting('access_token', tvshowtime_client.get_authorization(auth_code))
-	elif xbmc_menu == 0 and __access_token__ is not None:
+	elif xbmc_menu == 0 and not tvshowtime_client.is_token_empty():
 		log("Sync")
 	elif xbmc_menu == 1:
 		__addon__.setSetting('access_token', None)

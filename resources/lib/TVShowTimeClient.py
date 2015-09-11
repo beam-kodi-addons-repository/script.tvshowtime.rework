@@ -19,11 +19,19 @@ class TVShowTimeClient(object):
         self.client_secret = 'bhaP1sNmuvaUoH45fCi1DaEwKNrheqcvqrUm81sE'
         self.device_code = None
         self.token = auth_token
+        self.rate_limit_remaining = None
         self.rate_limit_reset = None
 
+    def is_token_empty(self):
+        if self.token == '' or self.token is None:
+            return True
+        else:
+            return False
+
     def store_api_rate(self, headers):
-        self.rate_limit_remaining = int(headers.get("X-RateLimit-Remaining"))
-        self.rate_limit_reset = int(headers.get("X-RateLimit-Reset"))
+        if headers.get("X-RateLimit-Remaining"):
+            self.rate_limit_remaining = int(headers.get("X-RateLimit-Remaining"))
+            self.rate_limit_reset = int(headers.get("X-RateLimit-Reset"))
         log({'rate_remain' : self.rate_limit_remaining, 'rate_reset_at' : self.rate_limit_reset})
 
     def available_request(self):
@@ -71,7 +79,10 @@ class TVShowTimeClient(object):
         return authorize['access_token']
 
     def is_authorized(self):
-        if self.token == '' or self.token is None: return False
+        log("TODO: read value from cache")
+
+    def check_authorization(self):
+        if self.is_token_empty(): return False
         try:
             res = urllib2.urlopen(self.base_api_url + "user?access_token=" + self.token)
             data = json.loads(res.read())

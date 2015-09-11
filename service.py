@@ -16,12 +16,14 @@ sys.path.append (__resource__)
 from utilities import log, get_episode_info
 from TVShowTimeClient import TVShowTimeClient
 
-__access_token__  = __addon__.getSetting('access_token')
-tvshowtime_client = TVShowTimeClient(__access_token__)
+tvshowtime_client = TVShowTimeClient(__addon__.getSetting('access_token'))
 
 class KodiMonitor(xbmc.Monitor):
 
     def onNotification(self, sender, method, data):
+    	if tvshowtime_client.is_token_empty():
+    		tvshowtime_client.token = __addon__.getSetting('access_token')
+
     	if method == "VideoLibrary.OnUpdate": # or method == 'Player.OnStop':
     		parsed_data = json.loads(data)
     		log(parsed_data)
