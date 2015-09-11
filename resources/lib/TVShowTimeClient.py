@@ -22,6 +22,8 @@ class TVShowTimeClient(object):
         self.rate_limit_remaining = None
         self.rate_limit_reset = None
 
+        self.authorized = None
+
     def is_token_empty(self):
         if self.token == '' or self.token is None:
             return True
@@ -79,7 +81,10 @@ class TVShowTimeClient(object):
         return authorize['access_token']
 
     def is_authorized(self):
-        log("TODO: read value from cache")
+        if self.is_token_empty(): return False
+        if self.authorized == None: self.authorized = self.check_authorization() != False
+        log("Is authorized ~ " + str(self.authorized))
+        return self.authorized
 
     def check_authorization(self):
         if self.is_token_empty(): return False

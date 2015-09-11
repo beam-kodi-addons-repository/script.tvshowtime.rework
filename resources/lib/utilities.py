@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xbmc, xbmcaddon
+import xbmc, xbmcaddon, xbmcgui
 import json
 
 __addon__         = xbmcaddon.Addon()
@@ -28,3 +28,14 @@ def get_episode_info(episode_id):
     	'season'          : result['result']['episodedetails']['season'],
     	'episode'         : result['result']['episodedetails']['episode']
     }
+
+def set_episode_watched_status(tvshowtime_client, episode_id):
+	if tvshowtime_client.is_token_empty():
+		tvshowtime_client.token = __addon__.getSetting('access_token')
+
+	tvdb_data = get_episode_info(episode_id)
+	if tvshowtime_client.is_authorized():
+		log(str(tvdb_data))
+		for wait_time in tvshowtime_client.wait_for_available_request():
+			log("Waiting for available request.. " + str(wait_time) + "s")
+		tvshowtime_client.mark_episode(tvdb_data['episode_tvdb_id'],tvdb_data['play_count'] > 0)
