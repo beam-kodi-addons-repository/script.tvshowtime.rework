@@ -14,17 +14,24 @@ __resource__      = xbmc.translatePath(__resource_path__).decode('utf-8')
 sys.path.append (__resource__)
 
 from utilities import log, get_episode_info
+from TVShowTimeClient import TVShowTimeClient
+
+__access_token__  = __addon__.getSetting('access_token')
+tvshowtime_client = TVShowTimeClient(__access_token__)
 
 class KodiMonitor(xbmc.Monitor):
 
     def onNotification(self, sender, method, data):
-    	if method == "VideoLibrary.OnUpdate" or method == 'Player.OnStop':
+    	if method == "VideoLibrary.OnUpdate": # or method == 'Player.OnStop':
     		parsed_data = json.loads(data)
     		log(parsed_data)
     		if parsed_data['item']['type'] == 'episode':
     			episode_id = parsed_data['item']['id']
     			tvdb_data = get_episode_info(episode_id)
     			log(str(tvdb_data))
+    			for wait_time in tvshowtime_client.wait_for_available_request():
+    				log("Waiting for available request.. " + str(wait_time) + "s")
+    			tvshowtime_client.mark_episode(tvdb_data['episode_tvdb_id'],tvdb_data['play_count'] > 0)
 
 
 if (__name__ == "__main__"):

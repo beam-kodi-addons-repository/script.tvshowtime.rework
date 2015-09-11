@@ -8,7 +8,10 @@ import time
 
 from utilities import log
 
-class TVShowClient(object):
+# def log(message):
+#     print("###: " + str(message))
+
+class TVShowTimeClient(object):
 
     def __init__(self, auth_token = None):
         self.base_api_url = 'https://api.tvshowtime.com/v1/'
@@ -19,12 +22,12 @@ class TVShowClient(object):
         self.rate_limit_reset = None
 
     def store_api_rate(self, headers):
-        log(headers)
         self.rate_limit_remaining = int(headers.get("X-RateLimit-Remaining"))
         self.rate_limit_reset = int(headers.get("X-RateLimit-Reset"))
+        log({'rate_remain' : self.rate_limit_remaining, 'rate_reset_at' : self.rate_limit_reset})
 
     def available_request(self):
-        if self.rate_limit_reset == None: return True
+        if self.rate_limit_reset is None: return True
         if self.rate_limit_remaining > 1: return True
         if self.rate_limit_reset - time.time() < -5: return True
         return False
@@ -34,7 +37,7 @@ class TVShowClient(object):
             if self.available_request():
                 break
             else:
-                log("Waiting for available request.. " + str(int(self.rate_limit_reset - time.time()) + 5) + "s")
+                yield int(self.rate_limit_reset - time.time()) + 5
                 time.sleep(10)
 
     def get_code(self):
@@ -46,8 +49,8 @@ class TVShowClient(object):
         return data
 
     def wait_for_authorize(self,get_code_data):
-        if get_code_data['result'] == 'KO': return {'result' : 'KO'}
-        for wait_index in range(int(get_code_data['expires_in'] / get_code_data['interval'])):
+        if get_code_data['result'] == 'KO': yield {'result' : 'KO'}
+        for wait_index in range(int(get_code_data['expires_in'] / (get_code_data['interval'] + 1))):
             res = urllib2.urlopen(self.base_api_url + "oauth/access_token", 
                 urllib.urlencode({
                     "client_id" : self.client_id,
@@ -57,23 +60,25 @@ class TVShowClient(object):
             )
             data = json.loads(res.read())
             log(data)
-            if data['result'] == 'OK': return data
-            if data['message'] == 'Invalid code': return data
-            time.sleep(int(get_code_data['interval']))
-        return data
+            if data['result'] == 'OK': break
+            if data['message'] == 'Invalid code': break
+            yield data
+            time.sleep(int(get_code_data['interval']) + 1)
+        yield data
 
     def get_authorization(self,authorize):
-        if authorize['result'] == 'KO': return None
+        if authorize['result'] == 'KO': return ''
         return authorize['access_token']
 
     def is_authorized(self):
-        if self.token == '' or self.token == None: return False
+        if self.token == '' or self.token is None: return False
         try:
             res = urllib2.urlopen(self.base_api_url + "user?access_token=" + self.token)
             data = json.loads(res.read())
         except urllib2.HTTPError as res:
             data = { 'result' : 'KO' }
         self.store_api_rate(res.headers)
+        log(data)
         return data['user']['name'] if data['result'] == "OK" else False 
 
     def mark_episode(self,tvdb_episode_id,watch = True):
