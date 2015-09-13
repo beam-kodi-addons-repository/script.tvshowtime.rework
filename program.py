@@ -23,7 +23,7 @@ def app_start():
 	if tvshowtime_client.is_token_empty():
 		menu_items.append("Login")
 	else:
-		menu_items.append("Sync")
+		menu_items.append("Sync TV Show in Kodi to TVShowTime.com")
 		menu_items.append("Logout")
 
 	xbmc_menu = xbmcgui.Dialog().select(__scriptname__, menu_items)

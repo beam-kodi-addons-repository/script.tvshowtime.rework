@@ -21,6 +21,7 @@ tvshowtime_client = TVShowTimeClient(__addon__.getSetting('access_token'))
 class KodiMonitor(xbmc.Monitor):
 
     def onNotification(self, sender, method, data):
+        log([method,data])
     	if method == "VideoLibrary.OnUpdate": # or method == 'Player.OnStop':
     		parsed_data = json.loads(data)
     		log(parsed_data)
