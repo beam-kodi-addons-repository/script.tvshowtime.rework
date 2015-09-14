@@ -22,11 +22,15 @@ class KodiMonitor(xbmc.Monitor):
 
     def onNotification(self, sender, method, data):
         log([method,data])
-    	if method == "VideoLibrary.OnUpdate": # or method == 'Player.OnStop':
-    		parsed_data = json.loads(data)
-    		log(parsed_data)
-    		if parsed_data['item']['type'] == 'episode':
-				set_episode_watched_status(tvshowtime_client,parsed_data['item']['id'])
+        if method == "VideoLibrary.OnUpdate" or method == 'Player.OnStop':
+            parsed_data = json.loads(data)
+            log(parsed_data)
+            if parsed_data['item']['type'] == 'episode':
+                if method == 'Player.OnStop' and parsed_data['end'] == True:
+                    set_episode_watched_status(tvshowtime_client,parsed_data['item']['id'], True)
+                elif method == "VideoLibrary.OnUpdate":
+                    set_as_watched  = True if ('playcount' in parsed_data.keys() and parsed_data['playcount'] > 0) else None
+                    set_episode_watched_status(tvshowtime_client,parsed_data['item']['id'], set_as_watched)
 
 
 if (__name__ == "__main__"):

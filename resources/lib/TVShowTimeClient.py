@@ -24,6 +24,12 @@ class TVShowTimeClient(object):
 
         self.authorized = None
 
+        self.clear_cache()
+
+    def clear_cache(self):
+        log('Clearing cache')
+        self.cache = { 'last_mark_watch' : None }
+
     def is_token_empty(self):
         if self.token == '' or self.token is None:
             return True
@@ -112,9 +118,14 @@ class TVShowTimeClient(object):
         return data["result"] == "OK"
 
 
-    def mark_episode(self,tvdb_episode_id,watch = True):
-        action = "checkin" if watch == True else "checkout"
-        log("Mark episode: " + action + " - " + tvdb_episode_id)
+    def mark_episode(self,tvdb_episode_id,watched = True):
+        action = "checkin" if watched == True else "checkout"
+        log("Mark episode: " + action + " - " + str(tvdb_episode_id))
+
+        if self.cache['last_mark_watch'] and self.cache['last_mark_watch']['episode_id'] == tvdb_episode_id and self.cache['last_mark_watch']['status'] == watched:
+            log('Found in last cache, skipping sending on server')
+            return True
+
         try:
             res = urllib2.urlopen(self.base_api_url +  action + "?access_token=" + self.token,
                 urllib.urlencode({
@@ -128,4 +139,5 @@ class TVShowTimeClient(object):
             data = { 'result' : 'KO' }
         self.store_api_rate(res.headers)
         log(data)
+        if data["result"] == "OK": self.cache['last_mark_watch'] = {'episode_id' : tvdb_episode_id , 'status' : watched }
         return data["result"] == "OK"
