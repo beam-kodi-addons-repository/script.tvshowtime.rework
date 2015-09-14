@@ -64,11 +64,12 @@ def set_episode_watched_status(tvshowtime_client, episode_id, watch_state = None
     if tvshowtime_client.is_token_empty():
         tvshowtime_client.token = __addon__.getSetting('access_token')
 
+    tvdb_data = get_episode_info(episode_id)
+    log(str(tvdb_data))
+
     if watch_state == None:
-        tvdb_data = get_episode_info(episode_id)
-        log(str(tvdb_data))
         watch_state = tvdb_data['play_count'] > 0
 
     if tvshowtime_client.is_authorized():
         wait_for_request(tvshowtime_client, progress, percent)
-        tvshowtime_client.mark_episode(episode_id,watch_state)
+        tvshowtime_client.mark_episode(tvdb_data['episode_tvdb_id'],watch_state)
