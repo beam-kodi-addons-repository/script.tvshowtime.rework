@@ -2,13 +2,40 @@
 # -*- coding: utf-8 -*-
 
 import xbmc, xbmcaddon, xbmcgui
-import json
+import json, time
 
 __addon__         = xbmcaddon.Addon()
 __scriptname__    = __addon__.getAddonInfo('name')
 
 def log(message):
     xbmc.log("### " + __scriptname__ + ": " + str(message), level=xbmc.LOGNOTICE)
+
+def get_tvshow_episodes_watched_status(tvshow_id):
+    rpccmd = {
+        'jsonrpc': '2.0',
+        'method' : 'VideoLibrary.GetEpisodes',
+        'params': {
+            'tvshowid' : int(tvshow_id),
+            'properties' : ['playcount','season','episode'],
+        },
+        'id' : 1
+    }
+    result = execute_rpc_command(rpccmd)
+    if result == None: return None
+    return_result = {}
+    for episode in result['result']['episodes']:
+        if not int(episode['season']) in return_result.keys(): return_result[int(episode['season'])] = {}
+        return_result[int(episode['season'])][int(episode['episode'])] = episode['playcount'] > 0
+    return return_result
+
+def check_watched_status_in_kodi(info_data, season_number, episode_number):
+    if int(season_number) in info_data.keys():
+        if int(episode_number) in info_data[int(season_number)].keys():
+            return info_data[int(season_number)][int(episode_number)]
+        else:
+            return False
+    else:
+        return False
 
 def get_episode_info(episode_id):
     rpccmd = {
@@ -17,29 +44,37 @@ def get_episode_info(episode_id):
         'params': { 'episodeid' : episode_id, 'properties' : ['uniqueid','playcount','tvshowid','showtitle','season','episode'] },
         'id': 1
     }
-    rpccmd = json.dumps(rpccmd)
-    result = xbmc.executeJSONRPC(rpccmd)
-    result = json.loads(result)
+    result = execute_rpc_command(rpccmd)
+    if result == None: return None
     return {
+        'id'              : result['result']['episodedetails']['id'],
         'play_count'      : result['result']['episodedetails']['playcount'],
         'episode_tvdb_id' : result['result']['episodedetails']['uniqueid']['unknown'],
         'tvshow_id'       : result['result']['episodedetails']['tvshowid'],
         'tvshow_name'     : result['result']['episodedetails']['showtitle'],
         'season'          : result['result']['episodedetails']['season'],
-        'episode'         : result['result']['episodedetails']['episode']
+        'episode'         : result['result']['episodedetails']['episode'],
+        'watched'         : result['result']['episodedetails']['playcount'] > 0
     }
 
+def execute_rpc_command(rpccmd):
+    rpccmd = json.dumps(rpccmd)
+    result = xbmc.executeJSONRPC(rpccmd)
+    result = json.loads(result)
+    if 'error' in result.keys(): return None
+    return result
 
 def list_all_tv_shows():
     rpccmd = {
         'jsonrpc': '2.0',
         'method': 'VideoLibrary.GetTVShows',
-        'params': { 'properties' : ['imdbnumber'] },
+        'params': { 
+            'properties' : ['imdbnumber'], 
+            'sort' : { 'order': 'ascending', 'method': 'label' } 
+        },
         'id': 1
     }
-    rpccmd = json.dumps(rpccmd)
-    result = xbmc.executeJSONRPC(rpccmd)
-    result = json.loads(result)
+    result = execute_rpc_command(rpccmd)
     index = 0
     for tvshow in result['result']['tvshows']:
         index += 1
@@ -68,8 +103,47 @@ def set_episode_watched_status(tvshowtime_client, episode_id, watch_state = None
     log(str(tvdb_data))
 
     if watch_state == None:
-        watch_state = tvdb_data['play_count'] > 0
+        watch_state = tvdb_data['watched']
 
     if tvshowtime_client.is_authorized():
         wait_for_request(tvshowtime_client, progress, percent)
         tvshowtime_client.mark_episode(tvdb_data['episode_tvdb_id'],watch_state)
+
+def set_watched_episodes_of_tvshow(tvshowtime_client, kodi_tvshow_id, tvshow_id, progress = None, percent = None):
+    if tvshowtime_client.is_token_empty():
+        tvshowtime_client.token = __addon__.getSetting('access_token')
+
+    if tvshowtime_client.is_authorized():
+        wait_for_request(tvshowtime_client, progress, percent)
+        tvshow_info = tvshowtime_client.get_show_detail(tvshow_id)
+        if tvshow_info == None:
+            log("TVShow " + str(tvshow_id) + "not found")
+            return False
+
+        kodi_tvshow_watched_info = get_tvshow_episodes_watched_status(kodi_tvshow_id)
+        log(kodi_tvshow_watched_info)
+        all_eps_count = tvshow_info['show']['aired_episodes']
+        eps_count = 0
+        watched_range_from_first_ep = False
+        for episode in tvshow_info['show']['episodes']:
+            eps_count += 1
+            if progress is not None: progress.update(int(eps_count * 100 / all_eps_count),__scriptname__,"%s S%02dE%02d" % (tvshow_info['show']['name'], int(episode['season_number']), int(episode['number'])))
+            watched_status = check_watched_status_in_kodi(kodi_tvshow_watched_info,episode['season_number'],episode['number'])
+            if watched_status == True and int(episode['season_number']) == 1 and int(episode['number']) == 1:
+                watched_range_from_first_ep = True
+                watched_range_from_first_ep_season = int(episode['season_number'])
+                watched_range_from_first_ep_number = int(episode['number'])
+            elif watched_status == True and watched_range_from_first_ep == True:
+                watched_range_from_first_ep_season = int(episode['season_number'])
+                watched_range_from_first_ep_number = int(episode['number'])
+            elif watched_status == False and watched_range_from_first_ep == True:
+                log(['Range sync up to',watched_range_from_first_ep_season,watched_range_from_first_ep_number,tvshow_info['show']['name']])
+                watched_range_from_first_ep = False
+                log(['Unwatched', int(episode['season_number']), int(episode['number']),tvshow_info['show']['name']])
+            elif watched_status == True and watched_range_from_first_ep == False:
+                log(['Mark episode', int(episode['season_number']), int(episode['number']),tvshow_info['show']['name']])
+            else:
+                log(['Unwatched', int(episode['season_number']), int(episode['number']),tvshow_info['show']['name']])
+            time.sleep(0.1)
+        if watched_range_from_first_ep == True:
+            log(['Range sync up to',watched_range_from_first_ep_season,watched_range_from_first_ep_number,tvshow_info['show']['name']])

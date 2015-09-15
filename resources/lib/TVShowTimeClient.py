@@ -8,8 +8,11 @@ import time
 
 from utilities import log
 
-# def log(message):
-#     print("###: " + str(message))
+# def log(message, input_json = False):
+#     if input_json == True:
+#         print("###: " + json.dumps(message,sort_keys=True,indent=4, separators=(',', ': ')))
+#     else:
+#         print("###: " + str(message))
 
 class TVShowTimeClient(object):
 
@@ -102,6 +105,26 @@ class TVShowTimeClient(object):
         self.store_api_rate(res.headers)
         log(data)
         return data['user']['name'] if data['result'] == "OK" else False 
+
+    def get_show_detail(self, tvdb_show_id):
+        try:
+            res = urllib2.urlopen(self.base_api_url + "/show" + "?show_id=" + str(tvdb_show_id) +"&include_episodes=1&access_token=" + self.token)
+            data = json.loads(res.read())
+        except urllib2.HTTPError as res:
+            data = { 'result' : 'KO' }
+        self.store_api_rate(res.headers)
+        # log(data)
+        if data['result'] == "OK":
+            # if data['show']['episodes']:
+            #     data['show']['seasons'] = {}
+            #     for episode in data['show']['episodes']:
+            #         if episode['season_number'] in data['show']['seasons'].keys():
+            #             if int(episode['number']) > data['show']['seasons'][episode['season_number']]: data['show']['seasons'][episode['season_number']] = int(episode['number'])
+            #         else:
+            #             data['show']['seasons'][episode['season_number']] = int(episode['number'])
+            return data
+        else:
+            return None
 
     def follow_show(self, tvdb_show_id, follow_status = True):
         action = "follow" if follow_status == True else "unfollow"
