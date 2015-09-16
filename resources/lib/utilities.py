@@ -125,7 +125,7 @@ def set_watched_episodes_of_tvshow(tvshowtime_client, kodi_tvshow_id, tvshow_id,
 
         kodi_tvshow_watched_info = get_tvshow_episodes_watched_status(kodi_tvshow_id)
         log(kodi_tvshow_watched_info)
-        all_eps_count = tvshow_info['show']['aired_episodes']
+        all_eps_count = len(tvshow_info['show']['episodes'])
         eps_count = 0
         watched_range_from_first_ep = False
         for episode in tvshow_info['show']['episodes']:
