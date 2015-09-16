@@ -10,6 +10,11 @@ __scriptname__    = __addon__.getAddonInfo('name')
 def log(message):
     xbmc.log("### " + __scriptname__ + ": " + str(message), level=xbmc.LOGNOTICE)
 
+def reload_addon():
+    global __addon__
+    __addon__ = xbmcaddon.Addon()
+
+
 def get_tvshow_episodes_watched_status(tvshow_id):
     rpccmd = {
         'jsonrpc': '2.0',

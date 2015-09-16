@@ -13,12 +13,17 @@ __resource__      = xbmc.translatePath(__resource_path__).decode('utf-8')
 
 sys.path.append (__resource__)
 
-from utilities import log, get_episode_info, set_episode_watched_status
+from utilities import log, get_episode_info, set_episode_watched_status,reload_addon
 from TVShowTimeClient import TVShowTimeClient
 
 tvshowtime_client = TVShowTimeClient(__addon__.getSetting('access_token'))
 
 class KodiMonitor(xbmc.Monitor):
+
+    def onSettingsChanged(self):
+        global __addon__
+        __addon__ = xbmcaddon.Addon()
+        reload_addon()
 
     def onNotification(self, sender, method, data):
         if method == "VideoLibrary.OnUpdate" or method == 'Player.OnStop':
