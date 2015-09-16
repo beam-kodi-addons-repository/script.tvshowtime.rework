@@ -134,27 +134,36 @@ def set_watched_episodes_of_tvshow(tvshowtime_client, kodi_tvshow_id, tvshow_id,
 
         kodi_tvshow_watched_info = get_tvshow_episodes_watched_status(kodi_tvshow_id)
         log(kodi_tvshow_watched_info)
+
         all_eps_count = len(tvshow_info['show']['episodes'])
         eps_count = 0
         watched_range_from_first_ep = False
+        server_watched_next_eps_changed = False
+
         for episode in tvshow_info['show']['episodes']:
             eps_count += 1
             if progress is not None: 
                 percent = int(eps_count * 100 / all_eps_count)
                 progress.update(percent,__scriptname__,"%s S%02dE%02d" % (tvshow_info['show']['name'], int(episode['season_number']), int(episode['number'])))
             watched_status = check_watched_status_in_kodi(kodi_tvshow_watched_info,episode['season_number'],episode['number'])
-            server_watched_status = episode['seen']
+            server_watched_status = False if server_watched_next_eps_changed else episode['seen']
             if watched_status == True and int(episode['season_number']) == 1 and int(episode['number']) == 1:
                 watched_range_from_first_ep = True
                 watched_range_from_first_ep_season = int(episode['season_number'])
                 watched_range_from_first_ep_number = int(episode['number'])
+                watched_range_already_checked = server_watched_status
             elif watched_status == True and watched_range_from_first_ep == True:
                 watched_range_from_first_ep_season = int(episode['season_number'])
                 watched_range_from_first_ep_number = int(episode['number'])
+                if watched_range_already_checked: watched_range_already_checked = server_watched_status
             elif watched_status == False and watched_range_from_first_ep == True:
                 log(['Range sync up to',watched_range_from_first_ep_season,watched_range_from_first_ep_number,tvshow_info['show']['name']])
-                wait_for_request(tvshowtime_client, progress, percent)
-                tvshowtime_client.mark_episode_in_range_from_start(tvshow_id,watched_range_from_first_ep_season,watched_range_from_first_ep_number,True)
+                if not watched_range_already_checked:
+                    wait_for_request(tvshowtime_client, progress, percent)
+                    tvshowtime_client.mark_episode_in_range_from_start(tvshow_id,watched_range_from_first_ep_season,watched_range_from_first_ep_number,True)
+                    server_watched_next_eps_changed = True
+                else:
+                    log('Already checked on server, skipping')
                 watched_range_from_first_ep = False
                 log(['Unwatched', int(episode['season_number']), int(episode['number']),tvshow_info['show']['name'],watched_status,server_watched_status])
                 if not server_watched_status == watched_status: send_episode_watched_status(tvshowtime_client, episode['id'], watched_status, progress, percent)
@@ -167,6 +176,9 @@ def set_watched_episodes_of_tvshow(tvshowtime_client, kodi_tvshow_id, tvshow_id,
 
         if watched_range_from_first_ep == True:
             log(['Range sync up to',watched_range_from_first_ep_season,watched_range_from_first_ep_number,tvshow_info['show']['name']])
-            wait_for_request(tvshowtime_client, progress, percent)
-            tvshowtime_client.mark_episode_in_range_from_start(tvshow_id,watched_range_from_first_ep_season,watched_range_from_first_ep_number,True)
+            if not watched_range_already_checked:
+                wait_for_request(tvshowtime_client, progress, percent)
+                tvshowtime_client.mark_episode_in_range_from_start(tvshow_id,watched_range_from_first_ep_season,watched_range_from_first_ep_number,True)
+            else:
+                log('Already checked on server, skipping')
 
