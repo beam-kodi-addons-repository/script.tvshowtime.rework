@@ -47,7 +47,7 @@ def get_episode_info(episode_id):
     result = execute_rpc_command(rpccmd)
     if result == None: return None
     return {
-        'id'              : result['result']['episodedetails']['id'],
+        'id'              : result['result']['episodedetails']['episodeid'],
         'play_count'      : result['result']['episodedetails']['playcount'],
         'episode_tvdb_id' : result['result']['episodedetails']['uniqueid']['unknown'],
         'tvshow_id'       : result['result']['episodedetails']['tvshowid'],
