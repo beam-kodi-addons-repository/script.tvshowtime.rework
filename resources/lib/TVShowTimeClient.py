@@ -164,3 +164,20 @@ class TVShowTimeClient(object):
         log(data)
         if data["result"] == "OK": self.cache['last_mark_watch'] = {'episode_id' : tvdb_episode_id , 'status' : watched }
         return data["result"] == "OK"
+
+    def mark_episode_in_range_from_start(self,tvdb_show_id, last_season = None, last_episode = None, watched = True):
+        action = "show_progress" if watched == True else "delete_show_progress"
+        log("Mark episodes in range: " + action + " - " + str(tvdb_show_id) + " / " + str(last_season) + " / " + str(last_episode))
+        try:
+            values = { "show_id" : int(tvdb_show_id) }
+            if last_season: values['season'] = int(last_season)
+            if last_episode: values['episode'] = int(last_episode)
+            res = urllib2.urlopen(self.base_api_url +  action + "?access_token=" + self.token,
+                urllib.urlencode(values)
+            )
+            data = json.loads(res.read())
+        except urllib2.HTTPError as res:
+            data = { 'result' : 'KO' }
+        self.store_api_rate(res.headers)
+        log(data)
+        return data["result"] == "OK"

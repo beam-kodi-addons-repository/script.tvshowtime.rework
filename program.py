@@ -57,10 +57,10 @@ def app_start():
 		progress = xbmcgui.DialogProgressBG()
 		progress.create(__scriptname__,"Starting tvshows sync..")
 		if xbmc_menu == 0:
+			log("All shows")
 			for tvshow in all_tv_shows:
 				log(tvshow)
 				set_watched_episodes_of_tvshow(tvshowtime_client, tvshow[2]['tvshowid'], tvshow[2]['imdbnumber'], progress, 0)	
-			log("All shows")
 		elif xbmc_menu == -1:
 			log("Dialog cancelled")
 			return
