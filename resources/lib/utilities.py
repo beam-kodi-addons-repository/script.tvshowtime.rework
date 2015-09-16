@@ -106,7 +106,11 @@ def set_episode_watched_status(tvshowtime_client, episode_id, watched_state = No
 
     send_episode_watched_status(tvshowtime_client,tvdb_data['episode_tvdb_id'],watched_state,progress,percent)
 
-def send_episode_watched_status(tvshowtime_client, tvdb_episode_id, watched_state = None ,progress = None, percent = None):
+def send_episode_watched_status(tvshowtime_client, tvdb_episode_id, watched_state ,progress = None, percent = None):
+    if not __addon__.getSetting('send_unwatched_status') == 'true' and watched_state == False:
+        log("Mark as unwatched skipped")
+        return True
+
     if tvshowtime_client.is_authorized():
         wait_for_request(tvshowtime_client, progress, percent)
         tvshowtime_client.mark_episode(tvdb_episode_id,watched_state)
@@ -120,7 +124,7 @@ def set_watched_episodes_of_tvshow(tvshowtime_client, kodi_tvshow_id, tvshow_id,
         wait_for_request(tvshowtime_client, progress, percent)
         tvshow_info = tvshowtime_client.get_show_detail(tvshow_id)
         if tvshow_info == None:
-            log("TVShow " + str(tvshow_id) + "not found")
+            log("TVShow " + str(tvshow_id) + " not found")
             return False
 
         kodi_tvshow_watched_info = get_tvshow_episodes_watched_status(kodi_tvshow_id)
