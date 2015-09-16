@@ -156,13 +156,13 @@ def set_watched_episodes_of_tvshow(tvshowtime_client, kodi_tvshow_id, tvshow_id,
                 wait_for_request(tvshowtime_client, progress, percent)
                 tvshowtime_client.mark_episode_in_range_from_start(tvshow_id,watched_range_from_first_ep_season,watched_range_from_first_ep_number,True)
                 watched_range_from_first_ep = False
-                log(['Unwatched', int(episode['season_number']), int(episode['number']),tvshow_info['show']['name']])
+                log(['Unwatched', int(episode['season_number']), int(episode['number']),tvshow_info['show']['name'],watched_status,server_watched_status])
                 if not server_watched_status == watched_status: send_episode_watched_status(tvshowtime_client, episode['id'], watched_status, progress, percent)
             elif watched_status == True and watched_range_from_first_ep == False:
-                log(['Mark episode', int(episode['season_number']), int(episode['number']),tvshow_info['show']['name']])
+                log(['Mark episode', int(episode['season_number']), int(episode['number']),tvshow_info['show']['name'],watched_status,server_watched_status])
                 if not server_watched_status == watched_status: send_episode_watched_status(tvshowtime_client, episode['id'], watched_status, progress, percent)
             else:
-                log(['Unwatched', int(episode['season_number']), int(episode['number']),tvshow_info['show']['name']])
+                log(['Unwatched', int(episode['season_number']), int(episode['number']),tvshow_info['show']['name'],watched_status,server_watched_status])
                 if not server_watched_status == watched_status: send_episode_watched_status(tvshowtime_client, episode['id'], watched_status, progress, percent)
 
         if watched_range_from_first_ep == True:
