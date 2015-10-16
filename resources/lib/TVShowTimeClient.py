@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re
+import re,sys
 import urllib,urllib2
-import json
 import time
+
+if sys.version_info < (2, 7):
+    import simplejson as json
+else:
+    import json
 
 from utilities import log
 
@@ -68,7 +72,7 @@ class TVShowTimeClient(object):
         return data
 
     def wait_for_authorize(self,get_code_data):
-        if get_code_data['result'] == 'KO': yield {'result' : 'KO'}
+        if get_code_data['result'] == 'KO': yield {'result' : 'KO', 'error' : get_code_date['message']}
         for wait_index in range(int(get_code_data['expires_in'] / (get_code_data['interval'] + 1))):
             res = urllib2.urlopen(self.base_api_url + "oauth/access_token", 
                 urllib.urlencode({
@@ -101,7 +105,7 @@ class TVShowTimeClient(object):
             res = urllib2.urlopen(self.base_api_url + "user?access_token=" + self.token)
             data = json.loads(res.read())
         except urllib2.HTTPError as res:
-            data = { 'result' : 'KO' }
+            data = { 'result' : 'KO', 'error' : res }
         self.store_api_rate(res.headers)
         log(data)
         return data['user']['name'] if data['result'] == "OK" else False 
@@ -111,7 +115,7 @@ class TVShowTimeClient(object):
             res = urllib2.urlopen(self.base_api_url + "/show" + "?show_id=" + str(tvdb_show_id) +"&include_episodes=1&access_token=" + self.token)
             data = json.loads(res.read())
         except urllib2.HTTPError as res:
-            data = { 'result' : 'KO' }
+            data = { 'result' : 'KO', 'error' : res }
         self.store_api_rate(res.headers)
         # log(data)
         if data['result'] == "OK":
@@ -135,7 +139,7 @@ class TVShowTimeClient(object):
             )
             data = json.loads(res.read())
         except urllib2.HTTPError as res:
-            data = { 'result' : 'KO' }
+            data = { 'result' : 'KO', 'error' : res }
         self.store_api_rate(res.headers)
         log(data)
         return data["result"] == "OK"
@@ -159,7 +163,7 @@ class TVShowTimeClient(object):
             )
             data = json.loads(res.read())
         except urllib2.HTTPError as res:
-            data = { 'result' : 'KO' }
+            data = { 'result' : 'KO', 'error' : res }
         self.store_api_rate(res.headers)
         log(data)
         if data["result"] == "OK": self.cache['last_mark_watch'] = {'episode_id' : tvdb_episode_id , 'status' : watched }
@@ -177,7 +181,7 @@ class TVShowTimeClient(object):
             )
             data = json.loads(res.read())
         except urllib2.HTTPError as res:
-            data = { 'result' : 'KO' }
+            data = { 'result' : 'KO', 'error' : res }
         self.store_api_rate(res.headers)
         log(data)
         return data["result"] == "OK"

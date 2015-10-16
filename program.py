@@ -1,7 +1,11 @@
-import os
+import os,sys
 import xbmc, xbmcaddon, xbmcgui
 import time
-import json
+
+if sys.version_info < (2, 7):
+    import simplejson as json
+else:
+    import json
 
 __addon__         = xbmcaddon.Addon()
 __cwd__           = __addon__.getAddonInfo('path')

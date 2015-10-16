@@ -1,8 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
 import xbmc, xbmcaddon, xbmcgui
-import json, time
+import time
+
+if sys.version_info < (2, 7):
+    import simplejson as json
+else:
+    import json
 
 __addon__         = xbmcaddon.Addon()
 __scriptname__    = __addon__.getAddonInfo('name')
