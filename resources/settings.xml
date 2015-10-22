@@ -2,4 +2,6 @@
 <settings>
 	<setting id="access_token" type="text" default="" visible="false" />
 	<setting id="send_unwatched_status" type="bool" label="Mark unwatched episodes on server" default="false" />
+	<setting id="send_status_on_every_player_stop" label="Send watched status on every player stop" type="bool" default="true" />
+	<setting id="every_player_stop_sleep_time" label="Sleep time before getting status from library" type="slider" subsetting="true" enable="eq(-1,true)" default="15" range="0,5,45" option="int" />
 </settings>

@@ -36,6 +36,11 @@ class KodiMonitor(xbmc.Monitor):
             if parsed_data['item']['type'] == 'episode':
                 if method == 'Player.OnStop' and parsed_data['end'] == True:
                     set_episode_watched_status(tvshowtime_client,parsed_data['item']['id'], True)
+                elif method == 'Player.OnStop' and parsed_data['end'] == False and __addon__.getSetting('send_status_on_every_player_stop') == 'true':
+                    sleep_time = int(__addon__.getSetting('every_player_stop_sleep_time'))
+                    log("Sleeping time before library reading.. %ss" % sleep_time)
+                    time.sleep(sleep_time)
+                    set_episode_watched_status(tvshowtime_client,parsed_data['item']['id'], None)
                 elif method == "VideoLibrary.OnUpdate":
                     set_as_watched  = True if ('playcount' in parsed_data.keys() and parsed_data['playcount'] > 0) else None
                     set_episode_watched_status(tvshowtime_client,parsed_data['item']['id'], set_as_watched)
