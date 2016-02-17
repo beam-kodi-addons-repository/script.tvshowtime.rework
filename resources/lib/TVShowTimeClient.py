@@ -132,7 +132,7 @@ class TVShowTimeClient(object):
 
     def follow_show(self, tvdb_show_id, follow_status = True):
         action = "follow" if follow_status == True else "unfollow"
-        log("Follow show: " + action + " - " + tvdb_show_id)
+        log("Follow show: " + action + " - " + str(tvdb_show_id))
         try:
             res = urllib2.urlopen(self.base_api_url +  action + "?access_token=" + self.token,
                 urllib.urlencode({ "show_id" : tvdb_show_id })

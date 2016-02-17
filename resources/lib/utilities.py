@@ -68,6 +68,21 @@ def get_episode_info(episode_id):
         'watched'         : result['result']['episodedetails']['playcount'] > 0
     }
 
+def get_show_info(show_id):
+    rpccmd = {
+        'jsonrpc': '2.0',
+        'method': 'VideoLibrary.GetTVShowDetails',
+        'params': { 'tvshowid' : show_id, 'properties' : ['imdbnumber','title'] },
+        'id': 1
+    }
+    result = execute_rpc_command(rpccmd)
+    if result == None: return None
+    return {
+        'id'              : result['result']['tvshowdetails']['tvshowid'],
+        'title'           : result['result']['tvshowdetails']['title'],
+        'tvdb_id'         : result['result']['tvshowdetails']['imdbnumber'],
+    }
+
 def execute_rpc_command(rpccmd):
     rpccmd = json.dumps(rpccmd)
     result = xbmc.executeJSONRPC(rpccmd)
@@ -116,6 +131,12 @@ def set_episode_watched_status(tvshowtime_client, episode_id, watched_state = No
     if watched_state == None: watched_state = tvdb_data['watched']
 
     send_episode_watched_status(tvshowtime_client,tvdb_data['episode_tvdb_id'],watched_state,progress,percent)
+    if watched_state and tvdb_data['episode'] == 1 and tvdb_data['season'] == 1:
+        tvdb_show_data = get_show_info(tvdb_data['tvshow_id'])
+        log("Watched first episode of show " + str(tvdb_show_data['title']) + ", following show.. " + str(tvdb_show_data['tvdb_id']))
+        wait_for_request(tvshowtime_client, progress, percent)
+        tvshowtime_client.follow_show(tvdb_show_data['tvdb_id'], True)
+
 
 def send_episode_watched_status(tvshowtime_client, tvdb_episode_id, watched_state ,progress = None, percent = None):
     if not __addon__.getSetting('send_unwatched_status') == 'true' and watched_state == False:
