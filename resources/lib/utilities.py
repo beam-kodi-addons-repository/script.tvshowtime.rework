@@ -133,7 +133,7 @@ def set_episode_watched_status(tvshowtime_client, episode_id, watched_state = No
     send_episode_watched_status(tvshowtime_client,tvdb_data['episode_tvdb_id'],watched_state,progress,percent)
     if watched_state and tvdb_data['episode'] == 1 and tvdb_data['season'] == 1:
         tvdb_show_data = get_show_info(tvdb_data['tvshow_id'])
-        log("Watched first episode of show " + str(tvdb_show_data['title']) + ", following show.. " + str(tvdb_show_data['tvdb_id']))
+        log("Watched first episode of show " + str(tvdb_show_data['title'].encode("utf-8")) + ", following show.. " + str(tvdb_show_data['tvdb_id']))
         wait_for_request(tvshowtime_client, progress, percent)
         tvshowtime_client.follow_show(tvdb_show_data['tvdb_id'], True)
 
