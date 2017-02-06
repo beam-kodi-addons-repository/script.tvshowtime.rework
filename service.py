@@ -33,6 +33,7 @@ class KodiMonitor(xbmc.Monitor):
         if method == "VideoLibrary.OnUpdate" or method == 'Player.OnStop':
             log([method,data])
             parsed_data = json.loads(data)
+            if not 'item' in parsed_data: parsed_data['item'] = parsed_data
             if parsed_data['item']['type'] == 'episode':
                 if method == 'Player.OnStop' and parsed_data['end'] == True:
                     set_episode_watched_status(tvshowtime_client,parsed_data['item']['id'], True)
