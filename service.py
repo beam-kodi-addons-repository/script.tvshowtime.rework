@@ -30,7 +30,7 @@ class KodiMonitor(xbmc.Monitor):
         reload_addon()
 
     def onNotification(self, sender, method, data):
-        if __addon__.getSetting("skip_on_library_update") == 'true' and scan_running:
+        if __addon__.getSetting("skip_on_library_update") == 'true' and scan_running():
             log("Library update in progress, skipping")
             return False
         if method == "VideoLibrary.OnUpdate" or method == 'Player.OnStop':
