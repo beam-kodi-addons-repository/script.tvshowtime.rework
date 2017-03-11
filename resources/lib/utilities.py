@@ -21,6 +21,13 @@ def reload_addon():
     __addon__ = xbmcaddon.Addon()
 
 
+def scan_running():
+    #check if any type of scan is currently running
+    if(xbmc.getCondVisibility('Library.IsScanningVideo') or xbmc.getCondVisibility('Library.IsScanningMusic')):
+        return True
+    else:
+        return False
+
 def get_tvshow_episodes_watched_status(tvshow_id):
     rpccmd = {
         'jsonrpc': '2.0',
@@ -94,9 +101,9 @@ def list_all_tv_shows():
     rpccmd = {
         'jsonrpc': '2.0',
         'method': 'VideoLibrary.GetTVShows',
-        'params': { 
-            'properties' : ['imdbnumber'], 
-            'sort' : { 'order': 'ascending', 'method': 'label' } 
+        'params': {
+            'properties' : ['imdbnumber'],
+            'sort' : { 'order': 'ascending', 'method': 'label' }
         },
         'id': 1
     }
@@ -169,7 +176,7 @@ def set_watched_episodes_of_tvshow(tvshowtime_client, kodi_tvshow_id, tvshow_id,
 
         for episode in tvshow_info['show']['episodes']:
             eps_count += 1
-            if progress is not None: 
+            if progress is not None:
                 percent = int(eps_count * 100 / all_eps_count)
                 progress.update(percent,__scriptname__,"%s S%02dE%02d" % (tvshow_info['show']['name'], int(episode['season_number']), int(episode['number'])))
             watched_status = check_watched_status_in_kodi(kodi_tvshow_watched_info,episode['season_number'],episode['number'])
@@ -208,4 +215,3 @@ def set_watched_episodes_of_tvshow(tvshowtime_client, kodi_tvshow_id, tvshow_id,
                 tvshowtime_client.mark_episode_in_range_from_start(tvshow_id,watched_range_from_first_ep_season,watched_range_from_first_ep_number,True)
             else:
                 log('Already checked on server, skipping')
-

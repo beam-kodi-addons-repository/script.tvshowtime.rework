@@ -17,7 +17,7 @@ __resource__      = xbmc.translatePath(__resource_path__).decode('utf-8')
 
 sys.path.append (__resource__)
 
-from utilities import log, get_episode_info, set_episode_watched_status,reload_addon
+from utilities import log, get_episode_info, set_episode_watched_status,reload_addon,scan_running
 from TVShowTimeClient import TVShowTimeClient
 
 tvshowtime_client = TVShowTimeClient(__addon__.getSetting('access_token'))
@@ -30,6 +30,9 @@ class KodiMonitor(xbmc.Monitor):
         reload_addon()
 
     def onNotification(self, sender, method, data):
+        if __addon__.getSetting("skip_on_library_update") == 'true' and scan_running:
+            log("Library update in progress, skipping")
+            return False
         if method == "VideoLibrary.OnUpdate" or method == 'Player.OnStop':
             log([method,data])
             parsed_data = json.loads(data)
@@ -45,7 +48,6 @@ class KodiMonitor(xbmc.Monitor):
                 elif method == "VideoLibrary.OnUpdate":
                     set_as_watched  = True if ('playcount' in parsed_data.keys() and parsed_data['playcount'] > 0) else None
                     set_episode_watched_status(tvshowtime_client,parsed_data['item']['id'], set_as_watched)
-
 
 if (__name__ == "__main__"):
     log("Starting.. " + __version__)
