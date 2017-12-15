@@ -64,10 +64,17 @@ def get_episode_info(episode_id):
     }
     result = execute_rpc_command(rpccmd)
     if result == None: return None
+    if 'tvdb' in result['result']['episodedetails']['uniqueid'].keys():
+        episode_tvdb_id = result['result']['episodedetails']['uniqueid']['tvdb']
+    elif 'unknown' in result['result']['episodedetails']['uniqueid'].keys():
+        episode_tvdb_id = result['result']['episodedetails']['uniqueid']['unknown']
+    else:
+        return None
+
     return {
         'id'              : result['result']['episodedetails']['episodeid'],
         'play_count'      : result['result']['episodedetails']['playcount'],
-        'episode_tvdb_id' : result['result']['episodedetails']['uniqueid']['tvdb'],
+        'episode_tvdb_id' : episode_tvdb_id,
         'tvshow_id'       : result['result']['episodedetails']['tvshowid'],
         'tvshow_name'     : result['result']['episodedetails']['showtitle'],
         'season'          : result['result']['episodedetails']['season'],
