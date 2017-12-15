@@ -67,7 +67,7 @@ def get_episode_info(episode_id):
     return {
         'id'              : result['result']['episodedetails']['episodeid'],
         'play_count'      : result['result']['episodedetails']['playcount'],
-        'episode_tvdb_id' : result['result']['episodedetails']['uniqueid']['unknown'],
+        'episode_tvdb_id' : result['result']['episodedetails']['uniqueid']['tvdb'],
         'tvshow_id'       : result['result']['episodedetails']['tvshowid'],
         'tvshow_name'     : result['result']['episodedetails']['showtitle'],
         'season'          : result['result']['episodedetails']['season'],
