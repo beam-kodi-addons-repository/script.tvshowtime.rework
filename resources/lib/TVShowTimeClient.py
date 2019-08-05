@@ -21,7 +21,7 @@ from utilities import log
 class TVShowTimeClient(object):
 
     def __init__(self, auth_token = None):
-        self.base_api_url = 'https://api.tvshowtime.com/v1/'
+        self.base_api_url = 'https://api.tvtime.com/v1/'
         self.client_id = 'pr4GUjdRKnLLxeLzCdZL'
         self.client_secret = 'bhaP1sNmuvaUoH45fCi1DaEwKNrheqcvqrUm81sE'
         self.device_code = None

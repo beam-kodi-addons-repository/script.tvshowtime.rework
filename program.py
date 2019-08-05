@@ -27,8 +27,8 @@ def app_start():
 	if tvshowtime_client.is_token_empty():
 		menu_items.append("Login")
 	else:
-		menu_items.append("Follow all Kodi shows on TVShowTime.com")
-		menu_items.append("Mark watched episodes on TVShowTime.com")
+		menu_items.append("Follow all Kodi shows on TVTime.com")
+		menu_items.append("Mark watched episodes on TVTime.com")
 		menu_items.append("Logout")
 
 	xbmc_menu = xbmcgui.Dialog().select(__scriptname__, menu_items)
